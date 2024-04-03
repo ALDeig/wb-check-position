@@ -11,6 +11,7 @@ class SettingKeys(str, Enum):
     START_MESSAGE = "start_message"
     CHECK_IS_ENABLE = "check_is_enable"
     CHANNEL = "channel"
+    HELP_MESSAGE = "help_message"
 
 
 def get_utc_time() -> datetime.datetime:

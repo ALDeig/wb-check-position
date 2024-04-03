@@ -44,6 +44,12 @@ async def set_start_message(text: str):
         )
 
 
+async def set_help_message(text: str):
+    async with session_factory() as session:
+        await SettingDao(session).insert_or_update(
+            {"key": SettingKeys.HELP_MESSAGE, "value": text}
+        )
+
 async def _mailing(text: str, users: Sequence[MUser], bot: Bot):
     for user in users:
         await bot.send_message(user.id, text)

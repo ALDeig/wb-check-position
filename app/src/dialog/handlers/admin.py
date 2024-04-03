@@ -64,3 +64,15 @@ async def cmd_set_start(msg: Message, state: FSMContext):
 async def get_start_text(msg: Message, state: FSMContext):
     await state.clear()
     await set_start_message(msg.md_text)
+
+
+@router.message(Command("set_help_text"))
+async def cmd_set_help_text(msg: Message, state: FSMContext):
+    await msg.answer("Введите сообщение")
+    await state.set_state("get_set_help_text")
+
+
+@router.message(StateFilter("get_set_help_text"))
+async def get_help_text(msg: Message, state: FSMContext):
+    await state.clear()
+    await set_start_message(msg.md_text)

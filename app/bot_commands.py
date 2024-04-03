@@ -20,6 +20,9 @@ ADMIN_COMMANS = [
     BotCommand(
         command="set_start_text", description="Установить приветственное сообщение"
     ),
+    BotCommand(
+        command="set_help_text", description="Установить текст инструкции"
+    ),
 ]
 
 
