@@ -8,17 +8,21 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from app.bot_commands import set_commands
 from app.settings import settings
+from app.src.services.schedule import scheduler, add_jobs
+from app.src.dialog.handlers import admin 
+from app.src.dialog.handlers import user
+from app.src.dialog.handlers import tracking
 
 logger = logging.getLogger(__name__)
 
 
 def include_routers(dp: Dispatcher):
-    dp.include_routers()
+    dp.include_routers(admin.router, user.router, tracking.router)
 
 
 def include_filters(dp: Dispatcher):
     dp.message.filter(F.chat.type == "private")
-    dp.callback_query.filter(F.chat.type == "private")
+    # dp.callback_query.filter(F.chat.type == "private")
 
 
 async def main():
@@ -32,17 +36,20 @@ async def main():
     include_filters(dp)
     include_routers(dp)
 
-    await set_commands(bot)
+    await set_commands(bot, settings.ADMINS)
 
     bot_info = await bot.get_me()
     logger.info(
-        f"Starting bot!!! UserName: {bot_info.username} FullName{bot_info.full_name}"
+        f"Starting bot!!! UserName: @{bot_info.username} FullName: {bot_info.full_name}"
     )
+    add_jobs(bot)
+    
     try:
+        scheduler.start()
         await dp.start_polling(bot)
     finally:
+        scheduler.shutdown()
         await bot.session.close()
-        await dp.stop_polling()
 
 
 if __name__ == "__main__":
