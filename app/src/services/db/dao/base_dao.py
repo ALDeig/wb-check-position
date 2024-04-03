@@ -25,10 +25,20 @@ class BaseDao(Generic[TypeModel]):
         query = sa.select(self.model).filter_by(**filter_by)
         return await self._session.scalar(query)
 
+    async def find_one(self, **filter_by) -> TypeModel:
+        query = sa.select(self.model).filter_by(**filter_by)
+        response = await self._session.execute(query)
+        return response.scalar_one()
+
     async def add(self, model_instanse: TypeModel) -> TypeModel:
-        async with self._session.begin():
-            self._session.add(model_instanse)
-            return model_instanse
+        self._session.add(model_instanse)
+        await self._session.commit()
+        return model_instanse
+
+    async def update(self, update_fields: dict, **filter_by) -> None:
+        query = sa.update(self.model).values(**update_fields).filter_by(**filter_by)
+        await self._session.execute(query)
+        await self._session.commit()
 
     async def delete(self, **filter_by) -> None:
         query = sa.delete(self.model).filter_by(**filter_by)
