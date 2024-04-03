@@ -17,7 +17,7 @@ async def cmd_start(msg: Message, command: CommandObject):
         text=text,
         reply_markup=kb,
         disable_web_page_preview=True,
-        parse_mode=ParseMode.MARKDOWN_V2
+        parse_mode=ParseMode.MARKDOWN_V2,
     )
 
 
@@ -32,4 +32,9 @@ async def btn_my_articules(call: CallbackQuery, message: Message):
 async def btn_help(call: CallbackQuery, message: Message):
     await call.answer()
     help_text, kb = await get_help_message()
-    await message.answer(help_text, reply_markup=kb)
+    await message.answer(
+        help_text,
+        reply_markup=kb,
+        disable_web_page_preview=True,
+        parse_mode=ParseMode.MARKDOWN_V2,
+    )
