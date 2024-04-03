@@ -12,6 +12,7 @@ from app.src.services.admin import (
     change_state_check_subscribe,
     get_file_with_users,
     mailing_to_users,
+    set_channel_for_check_subscribe,
     set_start_message,
 )
 
@@ -48,17 +49,32 @@ async def cmd_change_channel_subscribe_check(msg: Message):
     await msg.answer("Выберите состояние проверки подпски на канал", reply_markup=kb)
 
 
-@router.callback_query(F.data.in_({"enable", "disable"}), F.data.as_("data"))
-async def btn_change_check_subscribe(call: CallbackQuery, data: str):
+@router.callback_query(
+    F.data.in_({"enable", "disable"}), F.data.as_("data"), F.message.as_("message")
+)
+async def btn_change_check_subscribe(call: CallbackQuery, data: str, message: Message):
     await call.answer()
-    await change_state_check_subscribe(data)
+    text = await change_state_check_subscribe(data)
+    await message.edit_text(text)
+
+
+@router.message(Command("set_channel"))
+async def cmd_set_channel_for_check_subscribe(msg: Message, state: FSMContext):
+    await msg.answer("Введите id канала")
+    await state.set_state("get_channel_id")
+
+@router.message(StateFilter("get_msg_for_start"), F.text.as_("text"))
+async def get_channel_id(msg: Message, state: FSMContext, text: str):
+    await state.clear()
+    await set_channel_for_check_subscribe(text)
+    await msg.answer("Готово")
 
 
 @router.message(Command("set_start_text"))
 async def cmd_set_start(msg: Message, state: FSMContext):
     await msg.answer("Введите сообщение")
     await state.set_state("get_msg_for_start")
-    
+
 
 @router.message(StateFilter("get_msg_for_start"))
 async def get_start_text(msg: Message, state: FSMContext):

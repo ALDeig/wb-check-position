@@ -10,8 +10,6 @@ from app.src.services.db.dao.user_dao import UserDao
 from app.src.services.db.models import MUser, SettingKeys
 
 
-
-
 async def mailing_to_users(text: str, bot: Bot):
     async with session_factory() as session:
         users = await UserDao(session).find_all()
@@ -30,10 +28,19 @@ async def get_file_with_users() -> Path:
     return file
 
 
-async def change_state_check_subscribe(state: str):
+async def change_state_check_subscribe(state: str) -> str:
     async with session_factory() as session:
         await SettingDao(session).update(
             {"value": state}, key=SettingKeys.CHECK_IS_ENABLE
+        )
+    text = "Проверка отключена!" if state == "disable" else "Проверка включена!"
+    return text
+
+
+async def set_channel_for_check_subscribe(channel: str):
+    async with session_factory() as session:
+        await SettingDao(session).insert_or_update(
+            {"key": SettingKeys.CHANNEL, "value": channel}
         )
 
 
@@ -49,6 +56,7 @@ async def set_help_message(text: str):
         await SettingDao(session).insert_or_update(
             {"key": SettingKeys.HELP_MESSAGE, "value": text}
         )
+
 
 async def _mailing(text: str, users: Sequence[MUser], bot: Bot):
     for user in users:
