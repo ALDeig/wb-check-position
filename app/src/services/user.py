@@ -8,7 +8,7 @@ from app.src.services.db.dao.settings_dao import SettingDao
 from app.src.services.db.dao.user_dao import UserDao
 from app.src.services.db.models import SettingKeys
 from app.src.services.texts.tracking import get_text_track, get_tracking_text
-from app.src.services.texts.user import ARTICULE_NOT_FOUND, START_TEXT
+from app.src.services.texts.user import ARTICULE_NOT_FOUND, HELP, START_TEXT
 from app.src.services.tracking.tracking import Tracking
 from app.src.services.wb.parser import Parser, get_article
 
@@ -74,6 +74,13 @@ async def get_my_tracks(user_id: int) -> list[tuple[str, InlineKeyboardMarkup]]:
                 kb = remove_track(track.id)
                 messages.append((text, kb))
     return messages
+
+
+async def get_help_message() -> tuple[str, InlineKeyboardMarkup]:
+    async with session_factory() as session:
+        text = await SettingDao(session).find_one_or_none(key=SettingKeys.HELP_MESSAGE)
+        help_text = text.value if text and text.value else HELP
+    return help_text, user_menu()
 
 
 async def change_notify_state(track_id: int, state: bool):

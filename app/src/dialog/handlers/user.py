@@ -3,7 +3,7 @@ from aiogram.enums import ParseMode
 from aiogram.filters.command import CommandObject, CommandStart
 from aiogram.types import CallbackQuery, Message
 
-from app.src.services.user import get_my_tracks, user_start_process
+from app.src.services.user import get_help_message, get_my_tracks, user_start_process
 
 router = Router(name=__name__)
 
@@ -26,3 +26,10 @@ async def btn_my_articules(call: CallbackQuery, message: Message):
     messages = await get_my_tracks(call.from_user.id)
     for text, kb in messages:
         await message.answer(text, reply_markup=kb)
+
+
+@router.callback_query(F.data == "help", F.message.as_("message"))
+async def btn_help(call: CallbackQuery, message: Message):
+    await call.answer()
+    help_text, kb = await get_help_message()
+    await message.answer(help_text, reply_markup=kb)

@@ -13,7 +13,7 @@ def user_menu() -> InlineKeyboardMarkup:
             text="Бот для отслеживания заказов",
             url="https://t.me/WBoosterBot?start=bot_pozicii",
         ),
-        InlineKeyboardButton(text="Инструкция", callback_data="docs"),
+        InlineKeyboardButton(text="Инструкция", callback_data="help"),
     )
     builder.adjust(2)
     return builder.as_markup()
