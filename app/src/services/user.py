@@ -51,7 +51,7 @@ async def check_subscribe_channel(user_id: int, bot: Bot) -> bool:
     """Проверяет подписку на калан"""
     async with session_factory() as session:
         settings_dao = SettingDao(session)
-        is_enable = await settings_dao.find_one_or_none(key="check_is_enable")
+        is_enable = await settings_dao.find_one_or_none(key=SettingKeys.CHECK_IS_ENABLE)
         if is_enable is None or is_enable.value is None or is_enable.value == "disable":
             return True
         channel = await settings_dao.find_one_or_none(key=SettingKeys.CHANNEL)
@@ -63,7 +63,7 @@ async def check_subscribe_channel(user_id: int, bot: Bot) -> bool:
 
 
 async def get_my_tracks(user_id: int) -> list[tuple[str, InlineKeyboardMarkup]]:
-    """На кнопку мои отслеживания. Возвращает список кортежей, 
+    """На кнопку мои отслеживания. Возвращает список кортежей,
     с текстом и клавиатурой"""
     messages = []
     queries = await Tracking.get_all_tracks(notice_enabled=True, user_id=user_id)
