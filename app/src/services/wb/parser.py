@@ -76,7 +76,6 @@ class Parser:
         last_page = PAGE_COUNT
         page = 1
         while page != last_page + 1:
-            # for page in range(1, last_page + 1):
             # получаем товары на странице
             try:
                 page_articules = await self._get_products_on_page(LOCATIONS[location], page)
