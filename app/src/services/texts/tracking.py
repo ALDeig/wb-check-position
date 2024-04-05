@@ -6,8 +6,8 @@ HEADER_TEXT = (
     'Артикул {} по запросу <strong>"{}"</strong>\n\n'
     "Бот присылает информацию в формате\n"
     "✅ - есть, ❌ - нет;\n"
-    "📊 органическая позиция 32, страница 2;\n"
-    "📢 рекламная позиция 23, страница 1\n\n"
+    "📊 32/2 — органическая позиция/страница;\n"
+    "📢 23/1 — рекламная позиция/страница\n\n"
 )
 FOOTER_TEXT = "Вы можете включить регулярное отслеживание позиций для этого товара"
 
@@ -17,15 +17,14 @@ def get_tracking_text(query: str, articule: str | int, tracking: Positions) -> s
     for location in tracking.positions:
         if location.promo_position:
             promo_position_text = (
-                f"📢 позиция {location.promo_position}, "
-                f"страница {location.promo_page}; "
+                f"📢 {location.promo_position}/{location.promo_page}; "
             )
         else:
             promo_position_text = ""
         text += (
             f"\n{EMOJI[bool(location.position)]} {location.location} - "
             f"{promo_position_text}"
-            f"📊 позиция {location.position}, страница {location.page}"
+            f"📊 {location.position}/{location.page}"
         )
     text += f"\n\n{FOOTER_TEXT}"
     
