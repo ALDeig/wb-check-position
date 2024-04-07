@@ -74,7 +74,7 @@ async def get_channel_id(msg: Message, state: FSMContext, text: str):
 
 @router.message(Command("set_start_text"))
 async def cmd_set_start(msg: Message, state: FSMContext):
-    await msg.answer("Введите сообщение")
+    await msg.answer("Введите приветственное сообщение")
     await state.set_state("get_msg_for_start")
 
 
@@ -82,11 +82,12 @@ async def cmd_set_start(msg: Message, state: FSMContext):
 async def get_start_text(msg: Message, state: FSMContext):
     await state.clear()
     await set_start_message(msg.md_text)
+    await msg.answer("Готово")
 
 
 @router.message(Command("set_help_text"))
 async def cmd_set_help_text(msg: Message, state: FSMContext):
-    await msg.answer("Введите сообщение")
+    await msg.answer("Введите текст инструкции")
     await state.set_state("get_set_help_text")
 
 
@@ -94,3 +95,4 @@ async def cmd_set_help_text(msg: Message, state: FSMContext):
 async def get_help_text(msg: Message, state: FSMContext):
     await state.clear()
     await set_help_message(msg.md_text)
+    await msg.answer("Готово")
