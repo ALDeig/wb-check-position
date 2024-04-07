@@ -65,7 +65,7 @@ async def cmd_set_channel_for_check_subscribe(msg: Message, state: FSMContext):
     await state.set_state("get_channel_id")
 
 
-@router.message(StateFilter("get_msg_for_start"), F.text.as_("text"))
+@router.message(StateFilter("get_channel_id"), F.text.as_("text"))
 async def get_channel_id(msg: Message, state: FSMContext, text: str):
     await state.clear()
     await set_channel_for_check_subscribe(text)
