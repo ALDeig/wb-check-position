@@ -13,6 +13,7 @@ from app.src.services.admin import (
     get_file_with_users,
     mailing_to_users,
     set_channel_for_check_subscribe,
+    set_help_message,
     set_start_message,
 )
 
@@ -63,6 +64,7 @@ async def cmd_set_channel_for_check_subscribe(msg: Message, state: FSMContext):
     await msg.answer("Введите id канала")
     await state.set_state("get_channel_id")
 
+
 @router.message(StateFilter("get_msg_for_start"), F.text.as_("text"))
 async def get_channel_id(msg: Message, state: FSMContext, text: str):
     await state.clear()
@@ -91,4 +93,4 @@ async def cmd_set_help_text(msg: Message, state: FSMContext):
 @router.message(StateFilter("get_set_help_text"))
 async def get_help_text(msg: Message, state: FSMContext):
     await state.clear()
-    await set_start_message(msg.md_text)
+    await set_help_message(msg.md_text)
