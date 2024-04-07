@@ -23,6 +23,7 @@ async def cmd_start(msg: Message, command: CommandObject):
 
 @router.callback_query(F.data == "articules", F.message.as_("message"))
 async def btn_my_articules(call: CallbackQuery, message: Message):
+    await call.answer(cache_time=30)
     messages = await get_my_tracks(call.from_user.id)
     if not messages:
         await message.answer("У вас нет артикулов для отслеживания")
