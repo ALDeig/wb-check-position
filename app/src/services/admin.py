@@ -3,6 +3,11 @@ from pathlib import Path
 from typing import Sequence
 
 from aiogram import Bot
+from aiogram.exceptions import (
+    TelegramForbiddenError,
+    TelegramNotFound,
+    TelegramUnauthorizedError,
+)
 
 from app.src.services.db.base import session_factory
 from app.src.services.db.dao.settings_dao import SettingDao
@@ -62,4 +67,8 @@ async def set_help_message(text: str):
 
 async def _mailing(text: str, users: Sequence[MUser], bot: Bot):
     for user in users:
-        await bot.send_message(user.id, text)
+        try:
+            await bot.send_message(user.id, text)
+        except (TelegramForbiddenError, TelegramUnauthorizedError, TelegramNotFound):
+            async with session_factory() as session:
+                await UserDao(session).delete(id=user.id)
