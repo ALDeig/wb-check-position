@@ -7,7 +7,7 @@ from app.src.services.db.base import session_factory
 from app.src.services.db.dao.settings_dao import SettingDao
 from app.src.services.db.dao.user_dao import UserDao
 from app.src.services.db.models import SettingKeys
-from app.src.services.texts.tracking import get_text_track, get_tracking_text
+from app.src.services.texts.tracking import get_text_track, query_text
 from app.src.services.texts.user import ARTICULE_NOT_FOUND, HELP, START_TEXT
 from app.src.services.tracking.tracking import Tracking
 from app.src.services.wb.parser import Parser, get_article
@@ -34,7 +34,7 @@ async def new_query(user_id: int, raw_query: str) -> tuple[str, InlineKeyboardMa
         return ARTICULE_NOT_FOUND, user_menu()
     product = await parser.get_positions()
     track = await Tracking.create_track(query, articule, user_id)
-    text = get_tracking_text(query, articule, product[articule])
+    text = query_text(query, articule, product[articule])
     kb = kb_after_query(track.id)
     return text, kb
 
@@ -42,7 +42,7 @@ async def new_query(user_id: int, raw_query: str) -> tuple[str, InlineKeyboardMa
 async def update_query_positions(track_id: int) -> tuple[str, InlineKeyboardMarkup]:
     """На кнопку обновить. Обновление позиций и присылает новые"""
     query, articule, positions = await Tracking.update_positions(track_id)
-    text = get_tracking_text(query, articule, positions)
+    text = query_text(query, articule, positions)
     kb = kb_after_query(track_id)
     return text, kb
 
