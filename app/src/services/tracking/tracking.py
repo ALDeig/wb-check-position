@@ -15,12 +15,16 @@ class Tracking:
         queries = await cls.get_all_tracks(notice_enabled=True)
         for query in queries:
             notices = []
-            tracks = {track.articule: track for track in query.tracks if track.notice_enabled}
+            tracks = {
+                track.articule: track for track in query.tracks if track.notice_enabled
+            }
             parser = Parser(articules=list(tracks.keys()), query=query.query)
             positions = await parser.get_positions()
             for articule, track in tracks.items():
                 text = get_tracking_text(query.query, articule, positions[articule])
-                notices.append(MNotice(user_id=track.user_id, track_id=track.id, text=text))
+                notices.append(
+                    MNotice(user_id=track.user_id, track_id=track.id, text=text)
+                )
             await save_notices(notices)
 
     @classmethod
@@ -48,7 +52,6 @@ class Tracking:
     async def update_track(cls, track_id: int, is_enable: bool) -> None:
         async with session_factory() as session:
             await TrackDao(session).update({"notice_enabled": is_enable}, id=track_id)
-
 
     @staticmethod
     async def get_all_tracks(**filter_by) -> Sequence[MQuery]:
