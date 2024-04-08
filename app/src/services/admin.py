@@ -21,7 +21,9 @@ async def get_file_with_users() -> Path:
     async with session_factory() as session:
         users = await UserDao(session).find_all()
     for user in users:
-        line = f"{user.fullname:<20} | {user.username:<20} | {user.source}\n"
+        line = (
+            f"{user.fullname or "":<20} | {user.username or "":<20} | {user.source}\n"
+        )
         text += line
     file = Path("users.txt")
     file.write_text(text)
