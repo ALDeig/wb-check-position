@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def include_routers(dp: Dispatcher):
-    dp.include_routers(admin.router, user.router, tracking.router)
+    dp.include_routers(user.router, admin.router, tracking.router)
 
 
 def include_filters(dp: Dispatcher):
