@@ -24,7 +24,8 @@ async def mailing_notices(bot: Bot):
         try:
             await _send_notice(bot, notice)
         except SendError:
-            await _remove_track(notice.track_id)
+            if notice.track_id:
+                await _remove_track(notice.track_id)
 
 
 async def _send_notice(bot: Bot, notice: MNotice):
