@@ -8,5 +8,5 @@ scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
 
 
 def add_jobs(bot: Bot):
-    scheduler.add_job(update_tracks, "cron", hour=7)
+    scheduler.add_job(update_tracks, "cron", hour=7, args=[bot])
     scheduler.add_job(mailing_notices, "cron", hour=9, args=[bot])
