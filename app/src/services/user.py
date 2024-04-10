@@ -3,6 +3,7 @@ from aiogram.types import InlineKeyboardMarkup
 
 from app.src.dialog.keyboards.tracking import kb_after_query, remove_track
 from app.src.dialog.keyboards.user import user_menu
+from app.src.services.channel import get_channel_id, check_subscribe_on_channel
 from app.src.services.db.base import session_factory
 from app.src.services.db.dao.settings_dao import SettingDao
 from app.src.services.db.dao.user_dao import UserDao
@@ -49,17 +50,10 @@ async def update_query_positions(track_id: int) -> tuple[str, InlineKeyboardMark
 
 async def check_subscribe_channel(user_id: int, bot: Bot) -> bool:
     """Проверяет подписку на калан"""
-    async with session_factory() as session:
-        settings_dao = SettingDao(session)
-        is_enable = await settings_dao.find_one_or_none(key=SettingKeys.CHECK_IS_ENABLE)
-        if is_enable is None or is_enable.value is None or is_enable.value == "disable":
-            return True
-        channel = await settings_dao.find_one_or_none(key=SettingKeys.CHANNEL)
-        if channel is None or channel.value is None:
-            return True
-        chat_member = await bot.get_chat_member(channel.value, user_id)
-        print(chat_member)
+    channel_id = await get_channel_id()
+    if not channel_id:
         return True
+    return await check_subscribe_on_channel(channel_id, user_id, bot)
 
 
 async def get_my_tracks(user_id: int) -> list[tuple[str, InlineKeyboardMarkup]]:
