@@ -6,11 +6,10 @@ from app.src.services.db.dao.base_dao import BaseDao
 from app.src.services.db.models import MNotice, MQuery, MTrack
 
 
-
 class QueryDao(BaseDao[MQuery]):
     model = MQuery
 
-    async def find_all_with_notify_enable(self, **filter_by) -> Sequence[MQuery]:
+    async def find_all_with_filter_by_track(self, **filter_by) -> Sequence[MQuery]:
         query = (
             sa.select(self.model)
             .join(MTrack, MTrack.query_id == MQuery.id)
