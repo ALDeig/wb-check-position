@@ -22,11 +22,11 @@ async def mailing_to_users(text: str, bot: Bot):
 
 
 async def get_file_with_users() -> Path:
-    text = f"{'№':<3} | {'Имя':<20} | {'Юзернейм':<20} | Источник\n{'-':-<60}\n"
+    text = f"{'№':<3} | {'Имя':<30} | {'Юзернейм':<20} | Источник\n{'-':-<60}\n"
     async with session_factory() as session:
         users = await UserDao(session).find_all()
     for cnt, user in enumerate(users, start=1):
-        line = f"{cnt:<3} | {user.fullname or "":<20} | {user.username or "":<20} | {user.source}\n"
+        line = f"{cnt:<3} | {user.fullname or "":<30} | {user.username or "":<20} | {user.source or ""}\n"
         text += line
     file = Path("users.txt")
     file.write_text(text)
