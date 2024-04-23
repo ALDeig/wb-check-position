@@ -12,7 +12,6 @@ from app.src.services.texts.user import UNSUBSCRIBE
 from app.src.services.tracking.mailing import save_notices
 from app.src.services.wb.parser import Parser, Positions
 
-
 logger = logging.getLogger(__name__)
 
 

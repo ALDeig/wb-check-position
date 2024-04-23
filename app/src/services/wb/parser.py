@@ -78,7 +78,9 @@ class Parser:
         while page != last_page + 1:
             # получаем товары на странице
             try:
-                page_articules = await self._get_products_on_page(LOCATIONS[location], page)
+                page_articules = await self._get_products_on_page(
+                    LOCATIONS[location], page
+                )
             except EmptyPageError:
                 # если приходит пустой ответ, то сразу останавливаем цикл
                 last_page = page
