@@ -1,5 +1,6 @@
 START_TEXT = "Приветственное сообщение"
 ARTICULE_NOT_FOUND = "Артикула по данному запросу нет в индексе Wildberries"
+BAD_USER_REQUEST = "Не верный запрос"
 HELP = "Сообщение с инструкцией"
 NOT_FOUND_ARTICULES = "У вас нет артикулов для отслеживания"
 UNSUBSCRIBE = """ Чтобы пользоваться ботом бесплатно, нужно быть подписанным на <a href='https://t.me/+T-H0HIqGLg05Y2E6'>канал</a>

@@ -3,13 +3,19 @@ from aiogram.types import InlineKeyboardMarkup
 
 from app.src.dialog.keyboards.tracking import kb_after_query, remove_track
 from app.src.dialog.keyboards.user import user_menu
-from app.src.services.channel import get_channel_id, check_subscribe_on_channel
+from app.src.services.channel import check_subscribe_on_channel, get_channel_id
 from app.src.services.db.base import session_factory
 from app.src.services.db.dao.settings_dao import SettingDao
 from app.src.services.db.dao.user_dao import UserDao
 from app.src.services.db.models import SettingKeys
+from app.src.services.exceptions import BadUserRequest
 from app.src.services.texts.tracking import get_text_track, query_text
-from app.src.services.texts.user import ARTICULE_NOT_FOUND, HELP, START_TEXT
+from app.src.services.texts.user import (
+    ARTICULE_NOT_FOUND,
+    BAD_USER_REQUEST,
+    HELP,
+    START_TEXT,
+)
 from app.src.services.tracking.tracking import Tracking
 from app.src.services.wb.parser import Parser, get_article
 
@@ -29,7 +35,10 @@ async def user_start_process(
 
 async def new_query(user_id: int, raw_query: str) -> tuple[str, InlineKeyboardMarkup]:
     """На прислынный запрос. Запрашивает позиции и создает трек, без отслеживания"""
-    articule, query = _get_articule_and_query(raw_query)
+    try:
+        articule, query = _get_articule_and_query(raw_query)
+    except BadUserRequest:
+        return BAD_USER_REQUEST, user_menu()
     parser = Parser(articule, query)
     if not await parser.is_exists():
         return ARTICULE_NOT_FOUND, user_menu()
@@ -82,5 +91,8 @@ async def change_notify_state(track_id: int, state: bool):
 
 
 def _get_articule_and_query(full_query: str) -> tuple[int, str]:
-    articule_or_url, query = full_query.split(maxsplit=1)
+    try:
+        articule_or_url, query = full_query.split(maxsplit=1)
+    except ValueError:
+        raise BadUserRequest
     return get_article(articule_or_url), query.strip()
