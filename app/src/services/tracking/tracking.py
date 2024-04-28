@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from typing import Sequence
 
 from aiogram import Bot
@@ -25,24 +26,21 @@ class Tracking:
         queries = await cls.get_all_tracks(notice_enabled=True)
         for query in queries:
             notices = []
-            tracks = {
-                track.articule: track for track in query.tracks if track.notice_enabled
-            }
-            logger.info(tracks)
+            tracks = cls._group_by_articles(query.tracks)
             if channel_id:
                 tracks = await cls._exclude_unsubscribed_users(
                     verified_users, channel_id, tracks, bot
                 )
-                logger.info(tracks)
                 if not tracks:
                     continue
             parser = Parser(articules=list(tracks.keys()), query=query.query)
             positions = await parser.get_positions()
-            for articule, track in tracks.items():
+            for articule, group in tracks.items():
                 text = get_tracking_text(query.query, articule, positions[articule])
-                notices.append(
-                    MNotice(user_id=track.user_id, track_id=track.id, text=text)
-                )
+                for track in group:
+                    notices.append(
+                        MNotice(user_id=track.user_id, track_id=track.id, text=text)
+                    )
             await save_notices(notices)
         notices = []
         for user_id, is_subscribe in verified_users.items():
@@ -90,19 +88,29 @@ class Tracking:
     async def _exclude_unsubscribed_users(
         verified_users: dict[int, bool],
         channel_id: str,
-        tracks: dict[int, MTrack],
+        tracks: dict[int, list[MTrack]],
         bot: Bot,
-    ) -> dict[int, MTrack]:
+    ) -> dict[int, list[MTrack]]:
         valid_tracks = dict()
-        for articule, track in tracks.items():
-            if track.user_id not in verified_users:
-                is_subscribe = await check_subscribe_on_channel(
-                    channel_id, track.user_id, bot
-                )
-                verified_users[track.user_id] = is_subscribe
-            if verified_users[track.user_id]:
-                valid_tracks[articule] = track
+        for articule, group in tracks.items():
+            for track in group:
+                if track.user_id not in verified_users:
+                    is_subscribe = await check_subscribe_on_channel(
+                        channel_id, track.user_id, bot
+                    )
+                    verified_users[track.user_id] = is_subscribe
+                if not verified_users[track.user_id]:
+                    group.remove(track)
+            if group:
+                valid_tracks[articule] = group
         return valid_tracks
+
+    @staticmethod
+    def _group_by_articles(tracks: list[MTrack]) -> dict[int, list[MTrack]]:
+        group_tracks = defaultdict(list)
+        for track in tracks:
+            group_tracks[track.articule].append(track)
+        return group_tracks
 
 
 async def update_tracks(bot: Bot):
