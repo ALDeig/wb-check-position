@@ -1,4 +1,5 @@
 import asyncio
+from asyncio.exceptions import TimeoutError
 import logging
 import re
 from collections import defaultdict
@@ -48,7 +49,12 @@ class Parser:
             for location in Location
         ]
         for task in tasks:
-            result = await task
+            try:
+                result = await asyncio.wait_for(task, timeout=60)
+            except TimeoutError:
+                logger.error("TimeoutError")
+                continue
+            # result = await task
             for articule, position in result.items():
                 articules_positions[articule].positions.append(position)
 
@@ -99,6 +105,7 @@ class Parser:
                     # если позиция найдена, то добавляет ее в результат
                     # и удалаяет артикул из списка артикулов, которые нужно найти
                     positions[articule] = position
+                    logger.info(f"{not_found_articules}, {articule}")
                     try:
                         not_found_articules.remove(articule)
                     except KeyError:
