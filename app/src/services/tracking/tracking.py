@@ -109,7 +109,8 @@ class Tracking:
     def _group_by_articles(tracks: list[MTrack]) -> dict[int, list[MTrack]]:
         group_tracks = defaultdict(list)
         for track in tracks:
-            group_tracks[track.articule].append(track)
+            if track.notice_enabled:
+                group_tracks[track.articule].append(track)
         return group_tracks
 
 
