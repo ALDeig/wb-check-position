@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import re
 from collections import defaultdict
 from json.decoder import JSONDecodeError
@@ -9,6 +10,8 @@ from pydantic import BaseModel
 from app.src.services.exceptions import BadWbResponse, EmptyPageError, NotValideteUrl
 from app.src.services.wb.headers import get_headers, get_params
 from app.src.services.wb.locations import LOCATIONS, Location
+
+logger = logging.getLogger(__name__)
 
 SEARCH_URL = "https://search.wb.ru/exactmatch/ru/common/v5/search"
 TIMEOUT = 20
@@ -96,7 +99,12 @@ class Parser:
                     # если позиция найдена, то добавляет ее в результат
                     # и удалаяет артикул из списка артикулов, которые нужно найти
                     positions[articule] = position
-                    not_found_articules.remove(articule)
+                    try:
+                        not_found_articules.remove(articule)
+                    except KeyError:
+                        logger.error(
+                            f"KeyError: {not_found_articules}. Remove - {articule}"
+                        )
             if not not_found_articules:
                 return positions
             page += 1
