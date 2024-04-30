@@ -105,12 +105,12 @@ class Parser:
                     # если позиция найдена, то добавляет ее в результат
                     # и удалаяет артикул из списка артикулов, которые нужно найти
                     positions[articule] = position
-                    logger.info(f"{not_found_articules}, {articule}")
                     try:
                         not_found_articules.remove(articule)
                     except KeyError:
                         logger.error(
-                            f"KeyError: {not_found_articules}. Remove - {articule}"
+                            f"KeyError: {not_found_articules=}. "
+                            f"Remove - {articule=}. {self._articules=}"
                         )
             if not not_found_articules:
                 return positions
