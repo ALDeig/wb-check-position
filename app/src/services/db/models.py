@@ -2,6 +2,7 @@ import datetime
 from enum import Enum
 
 from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.src.services.db.base import Base
@@ -46,6 +47,7 @@ class MTrack(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     query_id: Mapped[int] = mapped_column(ForeignKey("queries.id", ondelete="CASCADE"))
     notice_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    positions: Mapped[dict] = mapped_column(JSONB, nullable=True)
     created: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), default=get_utc_time
     )
