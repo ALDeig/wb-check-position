@@ -36,11 +36,11 @@ class Tracking:
             parser = Parser(articules=list(tracks.keys()), query=query.query)
             positions = await parser.get_positions()
             for articule, group in tracks.items():
-                text = get_tracking_text(query.query, articule, positions[articule])
                 for track in group:
-                    notices.append(
-                        MNotice(user_id=track.user_id, track_id=track.id, text=text)
+                    notice = cls._prepare_notices(
+                        track, articule, positions[articule], query.query
                     )
+                    notices.append(notice)
             await save_notices(notices)
         notices = []
         for user_id, is_subscribe in verified_users.items():
@@ -49,28 +49,44 @@ class Tracking:
         await save_notices(notices)
 
     @classmethod
-    async def update_positions(cls, track_id: int) -> tuple[str, int, Positions]:
+    async def update_positions(
+        cls, track_id: int
+    ) -> tuple[str, int, Positions, Positions | None]:
         async with session_factory() as session:
-            track = await TrackDao(session).find_one(id=track_id)
+            track_dao = TrackDao(session)
+            track = await track_dao.find_one(id=track_id)
+            old_positions = (
+                Positions.model_validate(track.positions) if track.positions else None
+            )
             query: MQuery = await track.awaitable_attrs.query
             parser = Parser(track.articule, query.query)
             position = await parser.get_positions()
-            return query.query, track.articule, position[track.articule]
+            await track_dao.update(
+                {"positions": position[track.articule].model_dump()}, id=track_id
+            )
+            return query.query, track.articule, position[track.articule], old_positions
 
     @classmethod
-    async def create_track(cls, query_text: str, articule: int, user_id: int) -> MTrack:
+    async def create_track(
+        cls, query_text: str, articule: int, user_id: int, positions: dict
+    ) -> MTrack:
         async with session_factory() as session:
             query_dao = QueryDao(session)
             query = await query_dao.find_one_or_none(query=query_text)
             if not query:
                 query = await query_dao.add(MQuery(query=query_text))
             track = await TrackDao(session).add(
-                MTrack(articule=articule, user_id=user_id, query_id=query.id)
+                MTrack(
+                    articule=articule,
+                    user_id=user_id,
+                    query_id=query.id,
+                    positions=positions,
+                )
             )
         return track
 
     @classmethod
-    async def update_track(cls, track_id: int, is_enable: bool) -> None:
+    async def update_status_tracking(cls, track_id: int, is_enable: bool) -> None:
         async with session_factory() as session:
             await TrackDao(session).update({"notice_enabled": is_enable}, id=track_id)
 
@@ -83,6 +99,16 @@ class Tracking:
     async def _clear_notices() -> None:
         async with session_factory() as session:
             await NoticeDao(session).delete()
+
+    @staticmethod
+    async def _prepare_notices(
+        track: MTrack, articule: int, positions: Positions, query: str
+    ) -> MNotice:
+        old_positions = (
+            Positions.model_validate(track.positions) if track.positions else None
+        )
+        text = get_tracking_text(query, articule, positions, old_positions)
+        return MNotice(user_id=track.user_id, track_id=track.id, text=text)
 
     @staticmethod
     async def _exclude_unsubscribed_users(

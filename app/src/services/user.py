@@ -43,7 +43,9 @@ async def new_query(user_id: int, raw_query: str) -> tuple[str, InlineKeyboardMa
     if not await parser.is_exists():
         return ARTICULE_NOT_FOUND, user_menu()
     product = await parser.get_positions()
-    track = await Tracking.create_track(query, articule, user_id)
+    track = await Tracking.create_track(
+        query, articule, user_id, product[articule].model_dump()
+    )
     text = query_text(query, articule, product[articule])
     kb = kb_after_query(track.id)
     return text, kb
@@ -51,8 +53,8 @@ async def new_query(user_id: int, raw_query: str) -> tuple[str, InlineKeyboardMa
 
 async def update_query_positions(track_id: int) -> tuple[str, InlineKeyboardMarkup]:
     """На кнопку обновить. Обновление позиций и присылает новые"""
-    query, articule, positions = await Tracking.update_positions(track_id)
-    text = query_text(query, articule, positions)
+    query, articule, positions, old_positions = await Tracking.update_positions(track_id)
+    text = query_text(query, articule, positions, old_positions)
     kb = kb_after_query(track_id)
     return text, kb
 
@@ -87,7 +89,7 @@ async def get_help_message() -> tuple[str, InlineKeyboardMarkup]:
 
 
 async def change_notify_state(track_id: int, state: bool):
-    await Tracking.update_track(track_id, state)
+    await Tracking.update_status_tracking(track_id, state)
 
 
 def _get_articule_and_query(full_query: str) -> tuple[int, str]:
