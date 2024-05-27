@@ -68,8 +68,14 @@ class Parser:
 
     async def is_exists(self) -> bool:
         async with AsyncClient() as client:
+            params = {
+                "appType": 1,
+                "dest": -1257786,
+                "spp": 30,
+                "nm": self._articules[0],
+            }
             response = await client.get(
-                "https://card.wb.ru/cards/v2/detail", params={"nm": self._articules[0]}
+                "https://card.wb.ru/cards/v2/detail", params=params
             )
         try:
             return bool(response.json()["data"]["products"])
