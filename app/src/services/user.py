@@ -33,27 +33,36 @@ async def user_start_process(
     return start_text, user_menu()
 
 
-async def new_query(user_id: int, raw_query: str) -> tuple[str, InlineKeyboardMarkup]:
+async def new_query(
+    user_id: int, raw_query: str
+) -> list[tuple[str, InlineKeyboardMarkup]]:
     """На прислынный запрос. Запрашивает позиции и создает трек, без отслеживания"""
     try:
-        articule, query = _get_articule_and_query(raw_query)
+        articule, queries = _get_articule_and_query(raw_query)
     except BadUserRequest:
-        return BAD_USER_REQUEST, user_menu()
-    parser = Parser(articule, query)
-    if not await parser.is_exists():
-        return ARTICULE_NOT_FOUND, user_menu()
-    product = await parser.get_positions()
-    track = await Tracking.create_track(
-        query, articule, user_id, product[articule].model_dump()
-    )
-    text = query_text(query, articule, product[articule])
-    kb = kb_after_query(track.id)
-    return text, kb
+        return [(BAD_USER_REQUEST, user_menu())]
+    response = []
+    for query in queries:
+        parser = Parser(articule, query)
+        if not await parser.is_exists():
+            response.append((ARTICULE_NOT_FOUND, user_menu()))
+            # return [(ARTICULE_NOT_FOUND, user_menu())]
+            break
+        product = await parser.get_positions()
+        track = await Tracking.create_track(
+            query, articule, user_id, product[articule].model_dump()
+        )
+        text = query_text(query, articule, product[articule])
+        kb = kb_after_query(track.id)
+        response.append((text, kb))
+    return response
 
 
 async def update_query_positions(track_id: int) -> tuple[str, InlineKeyboardMarkup]:
     """На кнопку обновить. Обновление позиций и присылает новые"""
-    query, articule, positions, old_positions = await Tracking.update_positions(track_id)
+    query, articule, positions, old_positions = await Tracking.update_positions(
+        track_id
+    )
     text = query_text(query, articule, positions, old_positions)
     kb = kb_after_query(track_id)
     return text, kb
@@ -92,9 +101,10 @@ async def change_notify_state(track_id: int, state: bool):
     await Tracking.update_status_tracking(track_id, state)
 
 
-def _get_articule_and_query(full_query: str) -> tuple[int, str]:
+def _get_articule_and_query(full_query: str) -> tuple[int, list[str]]:
     try:
         articule_or_url, query = full_query.split(maxsplit=1)
     except ValueError:
         raise BadUserRequest
-    return get_article(articule_or_url), query.strip()
+    queries = list(map(str.strip, query.split(",")))
+    return get_article(articule_or_url), queries

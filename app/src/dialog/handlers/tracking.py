@@ -19,8 +19,10 @@ async def get_query(msg: Message, bot: Bot, text: str):
     if not await check_subscribe_channel(msg.chat.id, bot):
         await msg.answer(UNSUBSCRIBE)
         return
-    text, kb = await new_query(msg.chat.id, text)
-    await msg.answer(text, reply_markup=kb)
+    responses = await new_query(msg.chat.id, text)
+    for text, kb in responses:
+        await msg.answer(text, reply_markup=kb)
+    # text, kb = await new_query(msg.chat.id, text)
 
 
 @router.callback_query(
