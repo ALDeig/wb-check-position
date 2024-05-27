@@ -53,7 +53,7 @@ class MTrack(Base):
     notice_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     positions: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
     created: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), default=get_utc_time
+        DateTime(timezone=True), default_factory=get_utc_time
     )
 
     query: Mapped["MQuery"] = relationship(back_populates="tracks", init=False)
