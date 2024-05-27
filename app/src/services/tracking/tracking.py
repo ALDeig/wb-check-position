@@ -46,7 +46,7 @@ class Tracking:
         for user_id, is_subscribe in verified_users.items():
             if not is_subscribe:
                 notices.append(
-                    MNotice(user_id=user_id, track_id=None, text=UNSUBSCRIBE)
+                    MNotice(text=UNSUBSCRIBE, user_id=user_id, track_id=None)
                 )
         await save_notices(notices)
 
@@ -103,14 +103,14 @@ class Tracking:
             await NoticeDao(session).delete()
 
     @staticmethod
-    async def _prepare_notices(
+    def _prepare_notices(
         track: MTrack, articule: int, positions: Positions, query: str
     ) -> MNotice:
         old_positions = (
             Positions.model_validate(track.positions) if track.positions else None
         )
         text = get_tracking_text(query, articule, positions, old_positions)
-        return MNotice(user_id=track.user_id, track_id=track.id, text=text)
+        return MNotice(text=text, user_id=track.user_id, track_id=track.id)
 
     @staticmethod
     async def _exclude_unsubscribed_users(
