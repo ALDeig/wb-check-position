@@ -45,7 +45,9 @@ class Tracking:
         notices = []
         for user_id, is_subscribe in verified_users.items():
             if not is_subscribe:
-                notices.append(MNotice(user_id=user_id, text=UNSUBSCRIBE))
+                notices.append(
+                    MNotice(user_id=user_id, track_id=None, text=UNSUBSCRIBE)
+                )
         await save_notices(notices)
 
     @classmethod
