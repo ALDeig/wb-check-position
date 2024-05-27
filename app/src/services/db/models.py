@@ -24,43 +24,49 @@ class MUser(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
     fullname: Mapped[str] = mapped_column(Text)
-    username: Mapped[str | None] = mapped_column(Text, nullable=True)
-    source: Mapped[str | None] = mapped_column(Text, nullable=True)
+    username: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
+    source: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
 
 
 class MQuery(Base):
     __tablename__ = "queries"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        BigInteger, init=False, primary_key=True, autoincrement=True
+    )
     query: Mapped[str] = mapped_column(Text, index=True)
 
     tracks: Mapped[list["MTrack"]] = relationship(
-        lazy="selectin", back_populates="query"
+        lazy="selectin", back_populates="query", init=False, default_factory=list
     )
 
 
 class MTrack(Base):
     __tablename__ = "tracks"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        BigInteger, init=False, primary_key=True, autoincrement=True
+    )
     articule: Mapped[int] = mapped_column(BigInteger)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     query_id: Mapped[int] = mapped_column(ForeignKey("queries.id", ondelete="CASCADE"))
     notice_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
-    positions: Mapped[dict] = mapped_column(JSONB, nullable=True)
+    positions: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
     created: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), default=get_utc_time
     )
 
-    query: Mapped["MQuery"] = relationship(back_populates="tracks")
+    query: Mapped["MQuery"] = relationship(back_populates="tracks", init=False)
 
 
 class MNotice(Base):
     __tablename__ = "notices"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        BigInteger, init=False, primary_key=True, autoincrement=True
+    )
     text: Mapped[str] = mapped_column(Text)
-    track_id: Mapped[int] = mapped_column(
+    track_id: Mapped[int | None] = mapped_column(
         ForeignKey("tracks.id", ondelete="CASCADE"), nullable=True
     )
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
