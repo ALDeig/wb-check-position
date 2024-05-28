@@ -1,6 +1,6 @@
 import asyncio
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from aiogram import Bot
 from aiogram.exceptions import (
@@ -15,10 +15,10 @@ from app.src.services.db.dao.user_dao import UserDao
 from app.src.services.db.models import MUser, SettingKeys
 
 
-async def mailing_to_users(text: str, bot: Bot):
+async def mailing_to_users(text: str, bot: Bot) -> asyncio.Task:
     async with session_factory() as session:
         users = await UserDao(session).find_all()
-    asyncio.create_task(_mailing(text, users, bot), name="mailing")
+    return asyncio.create_task(_mailing(text, users, bot), name="mailing")
 
 
 async def get_file_with_users() -> Path:
@@ -26,7 +26,10 @@ async def get_file_with_users() -> Path:
     async with session_factory() as session:
         users = await UserDao(session).find_all()
     for cnt, user in enumerate(users, start=1):
-        line = f"{cnt:<3} | {user.fullname or "":<30} | {user.username or "":<20} | {user.source or ""}\n"
+        line = (
+            f"{cnt:<3} | {user.fullname or "":<30} | "
+            f"{user.username or "":<20} | {user.source or ""}\n"
+        )
         text += line
     file = Path("users.txt")
     file.write_text(text)

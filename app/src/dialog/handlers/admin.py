@@ -1,4 +1,3 @@
-import asyncio
 from typing import cast
 
 from aiogram import Bot, F, Router
@@ -39,13 +38,10 @@ async def cmd_mailing(msg: Message, state: FSMContext):
 @router.message(StateFilter("mailing"))
 async def get_text_mailing(msg: Message, bot: Bot, state: FSMContext):
     await state.clear()
-    await mailing_to_users(cast(str, msg.text), bot)
+    task = await mailing_to_users(cast(str, msg.text), bot)
     await msg.answer(START_MAILING)
-    tasks = asyncio.all_tasks()
-    for task in tasks:
-        if task.get_name() == "mailing":
-            await task
-            await msg.answer(END_MAILING)
+    await task
+    await msg.answer(END_MAILING)
 
 
 @router.message(Command("users"))
