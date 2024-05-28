@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from typing import Sequence
+from collections.abc import Sequence
 
 from aiogram import Bot
 
@@ -21,7 +21,7 @@ class Tracking:
 
     @classmethod
     async def update_tracks_position(cls, channel_id: str | None, bot: Bot):
-        verified_users = dict()
+        verified_users = {}
         await cls._clear_notices()
         queries = await cls.get_all_tracks(notice_enabled=True)
         for query in queries:

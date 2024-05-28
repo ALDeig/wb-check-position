@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import Bot
 from aiogram.exceptions import (
     TelegramBadRequest,
@@ -11,6 +13,8 @@ from app.src.services.db.dao.track_dao import NoticeDao, QueryDao, TrackDao
 from app.src.services.db.models import MNotice
 from app.src.services.exceptions import SendError
 
+logger = logging.getLogger(__name__)
+
 
 async def save_notices(notices: list[MNotice]):
     async with session_factory() as session:
@@ -23,7 +27,8 @@ async def mailing_notices(bot: Bot):
     for notice in notices:
         try:
             await _send_notice(bot, notice)
-        except SendError:
+        except SendError as er:
+            logger.error(er)
             if notice.track_id:
                 await _remove_track(notice.track_id)
 
@@ -36,8 +41,8 @@ async def _send_notice(bot: Bot, notice: MNotice):
         TelegramBadRequest,
         TelegramForbiddenError,
         TelegramUnauthorizedError,
-    ):
-        raise SendError
+    ) as err:
+        raise SendError from err
 
 
 async def _remove_track(track_id: int) -> None:

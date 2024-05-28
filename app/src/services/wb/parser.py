@@ -1,7 +1,7 @@
 import asyncio
-from asyncio.exceptions import TimeoutError
 import logging
 import re
+from asyncio.exceptions import TimeoutError
 from collections import defaultdict
 from json.decoder import JSONDecodeError
 
@@ -169,9 +169,9 @@ class Parser:
                 raise BadWbResponse
             return result
         except KeyError:
-            raise EmptyPageError
+            raise EmptyPageError from None
         except JSONDecodeError:
-            raise BadWbResponse
+            raise BadWbResponse from None
 
     @staticmethod
     def _fing_position_in_page_articules(
