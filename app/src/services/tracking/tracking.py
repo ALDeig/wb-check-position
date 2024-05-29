@@ -1,6 +1,7 @@
 import logging
 from collections import defaultdict
 from collections.abc import Sequence
+from typing import Any
 
 from aiogram import Bot
 
@@ -20,11 +21,12 @@ class Tracking:
     """Сервис работы с треками. Обновление позиций, создание треков."""
 
     @classmethod
-    async def update_tracks_position(cls, channel_id: str | None, bot: Bot):
+    async def update_tracks_position(cls, channel_id: str | None, bot: Bot) -> None:
         verified_users = {}
         await cls._clear_notices()
         queries = await cls.get_all_tracks(notice_enabled=True)
         for query in queries:
+            updates = []
             notices = []
             tracks = cls._group_by_articles(query.tracks)
             if channel_id:
@@ -41,7 +43,9 @@ class Tracking:
                         track, articule, positions[articule], query.query
                     )
                     notices.append(notice)
+                    updates.append((track.id, positions[articule].model_dump()))
             await save_notices(notices)
+            await cls._update_tracks(updates)
         notices = []
         for user_id, is_subscribe in verified_users.items():
             if not is_subscribe:
@@ -70,14 +74,14 @@ class Tracking:
 
     @classmethod
     async def create_track(
-        cls, query_text: str, articule: int, user_id: int, positions: dict
+        cls, query_text: str, articule: int, user_id: int, positions: dict[str, Any]
     ) -> MTrack:
         async with session_factory() as session:
             query_dao = QueryDao(session)
             query = await query_dao.find_one_or_none(query=query_text)
             if not query:
                 query = await query_dao.add(MQuery(query=query_text))
-            track = await TrackDao(session).add(
+            return await TrackDao(session).add(
                 MTrack(
                     articule=articule,
                     user_id=user_id,
@@ -85,10 +89,10 @@ class Tracking:
                     positions=positions,
                 )
             )
-        return track
+        # return track
 
     @classmethod
-    async def update_status_tracking(cls, track_id: int, is_enable: bool) -> None:
+    async def update_status_tracking(cls, track_id: int, *, is_enable: bool) -> None:
         async with session_factory() as session:
             await TrackDao(session).update({"notice_enabled": is_enable}, id=track_id)
 
@@ -119,7 +123,7 @@ class Tracking:
         tracks: dict[int, list[MTrack]],
         bot: Bot,
     ) -> dict[int, list[MTrack]]:
-        valid_tracks = dict()
+        valid_tracks = {}
         for articule, group in tracks.items():
             for track in group:
                 if track.user_id not in verified_users:
@@ -141,7 +145,16 @@ class Tracking:
                 group_tracks[track.articule].append(track)
         return group_tracks
 
+    @classmethod
+    async def _update_tracks(cls, updates: list[tuple[int, dict[str, Any]]]) -> None:
+        async with session_factory() as session:
+            track_dao = TrackDao(session)
+            for track_id, positions in updates:
+                await track_dao.update(
+                    {"positions": positions}, id=track_id
+                )
 
-async def update_tracks(bot: Bot):
+
+async def update_tracks(bot: Bot) -> None:
     channel_id = await get_channel_id()
     await Tracking.update_tracks_position(channel_id, bot)
