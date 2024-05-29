@@ -69,5 +69,4 @@ def get_text_track(query: str, articule: int) -> str:
 def _get_promo_text(promo_position: int | None, promo_page: int | None) -> str:
     if not promo_position:
         return ""
-    promo_position_text = f"📢 {promo_position}/{promo_page}; "
-    return promo_position_text
+    return f"📢 {promo_position}/{promo_page}; "

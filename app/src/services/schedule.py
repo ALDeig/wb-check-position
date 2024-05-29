@@ -7,6 +7,6 @@ from app.src.services.tracking.tracking import update_tracks
 scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
 
 
-def add_jobs(bot: Bot):
+def add_jobs(bot: Bot) -> None:
     scheduler.add_job(update_tracks, "cron", hour=7, args=[bot])
     scheduler.add_job(mailing_notices, "cron", hour=9, args=[bot])

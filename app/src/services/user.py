@@ -23,7 +23,7 @@ from app.src.services.wb.parser import Parser, get_article
 async def user_start_process(
     user_id: int, fullname: str, username: str | None, source: str | None
 ) -> tuple[str, InlineKeyboardMarkup]:
-    """На команду старт. Сохраняет пользователя в БД"""
+    """На команду старт. Сохраняет пользователя в БД."""
     async with session_factory() as session:
         await UserDao(session).insert_or_nothing(
             user_id=user_id, fullname=fullname, username=username, source=source
@@ -36,7 +36,7 @@ async def user_start_process(
 async def new_query(
     user_id: int, raw_query: str
 ) -> list[tuple[str, InlineKeyboardMarkup]]:
-    """На прислынный запрос. Запрашивает позиции и создает трек, без отслеживания"""
+    """На прислынный запрос. Запрашивает позиции и создает трек, без отслеживания."""
     try:
         articule, queries = _get_articule_and_query(raw_query)
     except BadUserRequest:
@@ -59,7 +59,7 @@ async def new_query(
 
 
 async def update_query_positions(track_id: int) -> tuple[str, InlineKeyboardMarkup]:
-    """На кнопку обновить. Обновление позиций и присылает новые"""
+    """На кнопку обновить. Обновление позиций и присылает новые."""
     query, articule, positions, old_positions = await Tracking.update_positions(
         track_id
     )
@@ -69,7 +69,7 @@ async def update_query_positions(track_id: int) -> tuple[str, InlineKeyboardMark
 
 
 async def check_subscribe_channel(user_id: int, bot: Bot) -> bool:
-    """Проверяет подписку на калан"""
+    """Проверяет подписку на калан."""
     channel_id = await get_channel_id()
     if not channel_id:
         return True
@@ -78,7 +78,8 @@ async def check_subscribe_channel(user_id: int, bot: Bot) -> bool:
 
 async def get_my_tracks(user_id: int) -> list[tuple[str, InlineKeyboardMarkup]]:
     """На кнопку мои отслеживания. Возвращает список кортежей,
-    с текстом и клавиатурой"""
+    с текстом и клавиатурой.
+    """
     messages = []
     queries = await Tracking.get_all_tracks(notice_enabled=True, user_id=user_id)
     for query in queries:
@@ -97,14 +98,14 @@ async def get_help_message() -> tuple[str, InlineKeyboardMarkup]:
     return help_text, user_menu()
 
 
-async def change_notify_state(track_id: int, state: bool):
-    await Tracking.update_status_tracking(track_id, state)
+async def change_notify_state(track_id: int, *, notify_state: bool) -> None:
+    await Tracking.update_status_tracking(track_id, is_enable=notify_state)
 
 
 def _get_articule_and_query(full_query: str) -> tuple[int, list[str]]:
     try:
         articule_or_url, query = full_query.split(maxsplit=1)
     except ValueError:
-        raise BadUserRequest
+        raise BadUserRequest from None
     queries = list(map(str.strip, query.split(",")))
     return get_article(articule_or_url), queries

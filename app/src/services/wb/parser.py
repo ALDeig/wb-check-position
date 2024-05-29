@@ -20,7 +20,7 @@ PAGE_COUNT = 60
 
 
 class Position(BaseModel):
-    """Локация артикула и его позиция в данной локации"""
+    """Локация артикула и его позиция в данной локации."""
 
     location: str
     page: int
@@ -30,17 +30,21 @@ class Position(BaseModel):
 
 
 class Positions(BaseModel):
-    """Список позиций артикула по всем локациям"""
+    """Список позиций артикула по всем локациям."""
 
-    positions: list[Position] = list()
+    positions: list[Position] = []
 
 
 class Parser:
+    """Парсер WB."""
+
     def __init__(self, articules: list[int] | int, query: str) -> None:
+        """Принимает список артикулов или один артикул и поисковый запрос."""
         self._articules = articules if isinstance(articules, list) else [articules]
         self._query = query
 
     async def get_positions(self) -> dict[int, Positions]:
+        """Возвращает словарь с артикулами и позициями."""
         articules_positions = defaultdict(Positions)
 
         # каждая локация собирается конкурентно
@@ -52,7 +56,7 @@ class Parser:
             try:
                 result = await asyncio.wait_for(task, timeout=60)
             except TimeoutError:
-                logger.error("TimeoutError")
+                logger.exception("TimeoutError")
                 continue
             # result = await task
             for articule, position in result.items():
@@ -67,6 +71,7 @@ class Parser:
         return articules_positions
 
     async def is_exists(self) -> bool:
+        """Проверяет существует ли такой артикул на WB."""
         async with AsyncClient() as client:
             params = {
                 "appType": 1,
@@ -85,8 +90,8 @@ class Parser:
     async def _find_position_by_location(
         self, location: Location
     ) -> dict[int, Position]:
-        """Находит позции артикулов в одном регионе"""
-        positions = dict()
+        """Находит позции артикулов в одном регионе."""
+        positions = {}
         not_found_articules = set(self._articules)
         last_page = PAGE_COUNT
         page = 1
@@ -114,9 +119,12 @@ class Parser:
                     try:
                         not_found_articules.remove(articule)
                     except KeyError:
-                        logger.error(
-                            f"KeyError: {not_found_articules=}. "
-                            f"Remove - {articule=}. {self._articules=}"
+                        logger.exception(
+                            "KeyError: not_found_articules=%s. "
+                            "Remove - articule=%s. self._articules=%s",
+                            not_found_articules,
+                            articule,
+                            self._articules,
                         )
             if not not_found_articules:
                 return positions
@@ -136,7 +144,8 @@ class Parser:
         page: int,
     ) -> Position | None:
         """Вызывает функцию проверки артикула на странице, и если артикул найден,
-        то формирует данные по позиции"""
+        то формирует данные по позиции.
+        """
         # вызываем функцию, которая находит позицию, если не находит, то 0
         position = self._fing_position_in_page_articules(articule, page_articules)
         if not position:
@@ -157,7 +166,7 @@ class Parser:
         )
 
     async def _get_products_on_page(self, dest: str, page: int) -> dict[int, dict]:
-        """Собирает артикулы на странице"""
+        """Собирает артикулы на странице."""
         headers = get_headers(page, self._query)
         params = get_params(self._query, dest, page)
         async with AsyncClient(timeout=TIMEOUT, headers=headers) as client:
@@ -165,20 +174,25 @@ class Parser:
             response = await client.get(SEARCH_URL, params=params)
         try:
             result = {item["id"]: item for item in response.json()["data"]["products"]}
-            if len(result) == 1:
-                raise BadWbResponse
-            return result
+            # if len(result) == 1:
+            #     raise BadWbResponse
+            # return result
         except KeyError:
             raise EmptyPageError from None
         except JSONDecodeError:
             raise BadWbResponse from None
+        else:
+            if len(result) == 1:
+                raise BadWbResponse
+            return result
 
     @staticmethod
     def _fing_position_in_page_articules(
         articule: int, page_articules: dict[int, dict]
     ) -> int:
         """Находит позицию артикула из списка артикулов на странице. Если артикула нет
-        то возвращает 0"""
+        то возвращает 0.
+        """
         try:
             return tuple(page_articules.keys()).index(articule) + 1
         except ValueError:
@@ -193,7 +207,8 @@ class Parser:
 
 def get_article(article_or_url: str) -> int:
     """Если передается артикул, то он и возвращается типом int, если url, то
-    достается артикул и приводится к int"""
+    достается артикул и приводится к int.
+    """
     if article_or_url.isdigit():
         return int(article_or_url)
     url_without_params = article_or_url.split("?")[0]
