@@ -1,6 +1,6 @@
 from aiogram import F, Router
 from aiogram.enums import ParseMode
-from aiogram.filters.command import CommandObject, CommandStart
+from aiogram.filters.command import Command, CommandObject, CommandStart
 from aiogram.types import CallbackQuery, Message
 
 from app.src.services.texts.user import NOT_FOUND_ARTICULES
@@ -30,6 +30,15 @@ async def btn_my_articules(call: CallbackQuery, message: Message):
         await message.answer(NOT_FOUND_ARTICULES)
     for text, kb in messages:
         await message.answer(text, reply_markup=kb)
+
+
+@router.message(Command("my_articles"))
+async def cmd_my_articles(msg: Message) -> None:
+    messages = await get_my_tracks(msg.chat.id)
+    if not messages:
+        await msg.answer(NOT_FOUND_ARTICULES)
+    for text, kb in messages:
+        await msg.answer(text, reply_markup=kb)
 
 
 @router.callback_query(F.data == "help", F.message.as_("message"))

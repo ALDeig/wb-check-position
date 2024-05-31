@@ -22,10 +22,15 @@ ADMIN_COMMANS = [
     BotCommand(command="set_help_text", description="Установить текст инструкции"),
 ]
 
+USER_COMMANDS = [
+    BotCommand(command="start", description="Перезапустить бот"),
+    BotCommand(command="my_articles", description="Мои артикулы"),
+]
+
 
 async def set_commands(bot: Bot, admins: list[int]):
     await bot.set_my_commands(
-        commands=[BotCommand(command="start", description="Перезапустить бот")],
+        commands=USER_COMMANDS,
         scope=BotCommandScopeAllPrivateChats(),
     )
     for admin in admins:
@@ -34,4 +39,4 @@ async def set_commands(bot: Bot, admins: list[int]):
                 ADMIN_COMMANS, scope=BotCommandScopeChat(chat_id=admin)
             )
         except TelegramBadRequest as er:
-            logger.error(f"Set command error {admin}: {er.message}")
+            logger.exception("Set command error %s: %s", admin, er.message)
