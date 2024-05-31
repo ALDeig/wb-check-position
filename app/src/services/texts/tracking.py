@@ -54,7 +54,7 @@ def _diff_position_text(position: Position, old_positins: Positions | None) -> s
                 old_position.page * old_position.position
                 - position.page * position.position
             )
-            # если diff отрицательный - позиция опустилась, если положительный - поднялась
+            # если diff отрицательный - позиция опустилась, если положительный поднялась
             if not diff:
                 return ""
             diff_str = str(diff) if diff < 0 else f"+{diff}"
