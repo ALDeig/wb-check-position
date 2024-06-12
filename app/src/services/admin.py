@@ -2,12 +2,12 @@ import asyncio
 from collections.abc import Sequence
 from pathlib import Path
 
-from aiogram import Bot
 from aiogram.exceptions import (
     TelegramForbiddenError,
     TelegramNotFound,
     TelegramUnauthorizedError,
 )
+from aiogram.types import Message
 
 from app.src.services.db.base import session_factory
 from app.src.services.db.dao.settings_dao import SettingDao
@@ -15,10 +15,10 @@ from app.src.services.db.dao.user_dao import UserDao
 from app.src.services.db.models import MUser, SettingKeys
 
 
-async def mailing_to_users(text: str, bot: Bot) -> asyncio.Task:
+async def mailing_to_users(msg: Message) -> asyncio.Task:
     async with session_factory() as session:
         users = await UserDao(session).find_all()
-    return asyncio.create_task(_mailing(text, users, bot), name="mailing")
+    return asyncio.create_task(_mailing(msg, users), name="mailing")
 
 
 async def get_file_with_users() -> Path:
@@ -66,10 +66,10 @@ async def set_help_message(text: str):
         )
 
 
-async def _mailing(text: str, users: Sequence[MUser], bot: Bot):
+async def _mailing(msg: Message, users: Sequence[MUser]) -> None:
     for user in users:
         try:
-            await bot.send_message(user.id, text)
+            await msg.copy_to(user.id)
         except (TelegramForbiddenError, TelegramUnauthorizedError, TelegramNotFound):
             async with session_factory() as session:
                 await UserDao(session).delete(id=user.id)

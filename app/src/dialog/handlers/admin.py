@@ -1,6 +1,4 @@
-from typing import cast
-
-from aiogram import Bot, F, Router
+from aiogram import F, Router
 from aiogram.filters.command import Command
 from aiogram.filters.state import StateFilter
 from aiogram.fsm.context import FSMContext
@@ -36,9 +34,9 @@ async def cmd_mailing(msg: Message, state: FSMContext):
 
 
 @router.message(StateFilter("mailing"))
-async def get_text_mailing(msg: Message, bot: Bot, state: FSMContext):
+async def get_text_mailing(msg: Message, state: FSMContext):
     await state.clear()
-    task = await mailing_to_users(cast(str, msg.text), bot)
+    task = await mailing_to_users(msg)
     await msg.answer(START_MAILING)
     await task
     await msg.answer(END_MAILING)
