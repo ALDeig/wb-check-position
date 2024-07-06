@@ -150,7 +150,7 @@ class Parser:
         position = self._fing_position_in_page_articules(articule, page_articules)
         if not position:
             return
-        if promo := page_articules[articule]["log"]:
+        if promo := page_articules[articule].get("log"):
             page, position = self._calculate_page_and_position(promo["position"])
             promo_page, promo_position = self._calculate_page_and_position(
                 promo["promoPosition"]
