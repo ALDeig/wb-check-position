@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 async def check_subscribe_on_channel(
     channel_id: str | int, user_id: int, bot: Bot
 ) -> bool:
-    """Проверяет подписку на калан"""
+    """Проверяет подписку на калан."""
     chat_member = await bot.get_chat_member(channel_id, user_id)
-    if chat_member.status in (ChatMemberStatus.KICKED, ChatMemberStatus.LEFT):
+    if chat_member.status in {ChatMemberStatus.KICKED, ChatMemberStatus.LEFT}:
         logger.debug(chat_member)
         return False
     return True
@@ -23,7 +23,8 @@ async def check_subscribe_on_channel(
 
 async def get_channel_id() -> str | None:
     """Проверяет включена ли проверка подписки на канал, если включена, то возвращает
-    id канала"""
+    id канала.
+    """
     async with session_factory() as session:
         settings_dao = SettingDao(session)
         is_enable = await settings_dao.find_one(key=SettingKeys.CHECK_IS_ENABLE)
